@@ -14,7 +14,7 @@ export default defineConfig({
 
     nav: [
       { text: '首页', link: '/' },
-      { text: 'GitHub', link: 'https://github.com/ZhuoZhuoCrayon/throttled-nodejs' },
+      { text: 'GitHub', link: 'https://github.com/labike/throttled-nodejs' },
     ],
 
     sidebar: [
@@ -61,7 +61,7 @@ export default defineConfig({
     ],
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/ZhuoZhuoCrayon/throttled-nodejs' },
+      { icon: 'github', link: 'https://github.com/labike/throttled-nodejs' },
     ],
 
     footer: {

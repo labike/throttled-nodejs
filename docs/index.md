@@ -4,7 +4,7 @@ layout: home
 hero:
   name: throttled-nodejs
   text: 高性能 Node.js 限流库
-  tagline: 基于 throttled-py 移植，支持五种算法、两种存储、同步/异步全模式
+  tagline: 基于 throttled-py，支持五种算法、两种存储、同步/异步全模式
   actions:
     - theme: brand
       text: 快速开始

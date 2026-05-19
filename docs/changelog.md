@@ -6,7 +6,7 @@ title: 变更日志
 
 ## 3.2.0
 
-- 基于 throttled-py v3.2.0 移植
+- 基于 throttled-py v3.2.0
 - 五种算法（Fixed Window、Sliding Window、Token Bucket、Leaky Bucket、GCRA）
 - MemoryStore（LRU + TTL）
 - RedisStore（单机、哨兵、集群）
