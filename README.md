@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/throttled-nodejs?color=blue&logo=npm)](https://www.npmjs.com/package/throttled-nodejs)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-High-performance Node.js rate limiting library — port of [throttled-py](https://github.com/ZhuoZhuoCrayon/throttled-py).
+High-performance Node.js rate limiting library — from of [throttled-py](https://github.com/ZhuoZhuoCrayon/throttled-py).
 
 Supports five algorithms (Fixed Window, Sliding Window, Token Bucket, Leaky Bucket & GCRA) and two storage backends (Redis, In-Memory).
 
