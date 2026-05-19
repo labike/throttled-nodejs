@@ -1,33 +1,37 @@
-# Wait & Retry
+---
+title: 等待重试
+---
 
-By default, `Throttled` returns `RateLimitResult` immediately. To enable wait-and-retry, pass the `timeout` parameter. The limiter will wait based on `retryAfter` and retry automatically.
+# 等待重试
+
+默认 `Throttled` 立即返回。设置 `timeout` 后启用等待重试，根据 `retryAfter` 自动等待并重试。
 
 ```typescript
 import { Throttled, Timer } from 'throttled-nodejs';
 
-// 1 burst request, 1 token per second
+// 1 个 burst 请求，每秒补充 1 个 token
 const throttle = new Throttled({ key: 'key', quota: '1/s burst 1' });
 
-// Consume burst
+// 消耗 burst
 console.log(throttle.limit().limited); // false
 
 const timer = new Timer({
   clock: () => Date.now() / 1000,
-  callback: (elapsed) => console.log(`elapsed: ${elapsed.toFixed(2)} seconds`),
+  callback: (elapsed) => console.log(`耗时: ${elapsed.toFixed(2)} 秒`),
 });
 
 timer.enter();
-// Waits ~1s for next token
-console.log(throttle.limit('key', 1, 1).limited); // false (after ~1s)
+// 等待约 1s 获取下一个 token
+console.log(throttle.limit('key', 1, 1).limited); // false（~1s 后）
 timer.exit();
 
 timer.enter();
-// timeout < retryAfter → returns immediately
-console.log(throttle.limit('key', 1, 0.5).limited); // true (immediate)
+// timeout < retryAfter → 立即返回
+console.log(throttle.limit('key', 1, 0.5).limited); // true（立即）
 timer.exit();
 ```
 
-### Async
+## Async
 
 ```typescript
 import { AsyncThrottled } from 'throttled-nodejs';
@@ -36,14 +40,14 @@ const throttle = new AsyncThrottled({ key: 'key', quota: '1/s burst 1' });
 
 async function main() {
   console.log((await throttle.limit()).limited); // false
-  console.log((await throttle.limit('key', 1, 1)).limited); // false (~1s)
-  console.log((await throttle.limit('key', 1, 0.5)).limited); // true (immediate)
+  console.log((await throttle.limit('key', 1, 1)).limited); // false（~1s）
+  console.log((await throttle.limit('key', 1, 0.5)).limited); // true（立即）
 }
 
 main();
 ```
 
-### With Decorator
+## 装饰器 + 等待重试
 
 ```typescript
 import { Throttled, RateLimiterType } from 'throttled-nodejs';
@@ -65,15 +69,15 @@ const start = Date.now();
 for (let i = 0; i < 5; i++) {
   try {
     api.ping();
-    console.log(`Request ${i + 1} at ${((Date.now() - start) / 1000).toFixed(2)}s`);
+    console.log(`请求 ${i + 1} 在第 ${((Date.now() - start) / 1000).toFixed(2)}s`);
   } catch {
-    // LimitedError after timeout
+    // timeout 后抛出 LimitedError
   }
 }
 // Burst: 0.00s, 0.00s → Refill: 0.50s, 1.00s, 1.50s
 ```
 
-### Benchmark
+## 基准测试
 
 ```typescript
 import { Throttled, Benchmark, RateLimiterType } from 'throttled-nodejs';
@@ -92,8 +96,7 @@ async function main() {
   const bench = new Benchmark();
   const results = await bench.concurrent(callApi, 1000, 4);
   const denied = results.filter(Boolean).length;
-  console.log(`Denied: ${denied} requests`);
-  // ✅ Total: 1000, 🕒 Latency: 35.8103 ms/op, 🚀 Throughput: 111 req/s (--)
+  console.log(`被限流: ${denied} 次`);
 }
 
 main();

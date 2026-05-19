@@ -1,18 +1,22 @@
-# Hooks
+---
+title: Hook 中间件
+---
 
-The Hook system provides a middleware pattern for extending rate limiting behavior. Hooks can be used for observability, timing, exception handling, and custom logic.
+# Hook 中间件
 
-## 1) Basic Usage
+Hook 系统基于中间件模式（Chain of Responsibility），用于观测、计时、异常处理等切面需求。
+
+## 1) 基本用法
 
 ```typescript
 import { Hook, HookContext, RateLimitResult, Throttled } from 'throttled-nodejs';
 
 class LoggingHook extends Hook {
   onLimit(callNext: () => RateLimitResult, context: HookContext): RateLimitResult {
-    console.log(`Checking rate limit for ${context.key}`);
+    console.log(`检查限流: ${context.key}`);
     const result = callNext();
     const status = result.limited ? 'denied' : 'allowed';
-    console.log(`[${context.key}] ${status} - remaining: ${result.state.remaining}`);
+    console.log(`[${context.key}] ${status} - 剩余: ${result.state.remaining}`);
     return result;
   }
 }
@@ -25,8 +29,8 @@ const throttle = new Throttled({
 
 const result = throttle.limit();
 console.log(`limited=${result.limited}`);
-// Checking rate limit for /api/users
-// [/api/users] allowed - remaining: 9
+// 检查限流: /api/users
+// [/api/users] allowed - 剩余: 9
 // limited=false
 ```
 
@@ -40,10 +44,10 @@ class LoggingHook extends AsyncHook {
     callNext: () => Promise<RateLimitResult>,
     context: HookContext,
   ): Promise<RateLimitResult> {
-    console.log(`Checking rate limit for ${context.key}`);
+    console.log(`检查限流: ${context.key}`);
     const result = await callNext();
     const status = result.limited ? 'denied' : 'allowed';
-    console.log(`[${context.key}] ${status} - remaining: ${result.state.remaining}`);
+    console.log(`[${context.key}] ${status} - 剩余: ${result.state.remaining}`);
     return result;
   }
 }
@@ -62,38 +66,38 @@ async function main() {
 main();
 ```
 
-## 2) Middleware Pattern
+## 2) 中间件模式
 
-Hooks follow the Chain of Responsibility pattern. Multiple hooks are executed in order:
+多个 Hook 按顺序执行，形成洋葱模型：
 
 ```
 hooks = [A, B]
-Execution: A.onLimit(before) → B.onLimit(before) → rateLimit → B.onLimit(after) → A.onLimit(after)
+执行顺序: A.onLimit(before) → B.onLimit(before) → rateLimit → B.onLimit(after) → A.onLimit(after)
 ```
 
-Each hook can:
-1. Execute logic **before** the rate limit check
-2. Call `callNext()` to continue the chain
-3. Execute logic **after** the rate limit check
-4. Inspect or modify the result
+每个 Hook 可以：
+1. 在限流检查**前**执行逻辑
+2. 调用 `callNext()` 继续链
+3. 在限流检查**后**执行逻辑
+4. 检查或修改结果
 
 ## 3) HookContext
 
-| Property    | Type     | Description                     |
-|-------------|----------|---------------------------------|
-| `key`       | `string` | Rate limit key (user ID, IP, etc.) |
-| `cost`      | `number` | Request cost                    |
-| `algorithm` | `string` | Algorithm name                  |
-| `storeType` | `string` | Storage backend type            |
+| 属性        | 类型      | 说明                        |
+|-------------|-----------|-----------------------------|
+| `key`       | `string`  | 限流标识（用户 ID、IP 等） |
+| `cost`      | `number`  | 请求消耗                    |
+| `algorithm` | `string`  | 算法名                      |
+| `storeType` | `string`  | 存储后端类型                |
 
-The result is obtained by calling `callNext()`, not from the context.
+结果通过 `callNext()` 获取，不在 context 中。
 
-## 4) Type Validation
+## 4) 类型校验
 
-Sync `Throttled` only accepts `Hook` instances; `AsyncThrottled` only accepts `AsyncHook` instances.
+同步 `Throttled` 只接受 `Hook` 实例，异步只接受 `AsyncHook` 实例。
 
 ```typescript
-// ✅ Correct
+// ✅ 正确
 new Throttled({ key: '/api', quota: '10/s', hooks: [new MySyncHook()] });
 new AsyncThrottled({ key: '/api', quota: '10/s', hooks: [new MyAsyncHook()] });
 
@@ -102,7 +106,7 @@ new Throttled({ key: '/api', hooks: [new MyAsyncHook()] });
 new Throttled({ key: '/api', hooks: ['not a hook'] });
 ```
 
-## 5) Creating Custom Hooks
+## 5) 自定义 Hook
 
 ```typescript
 import { Hook, HookContext, RateLimitResult, Throttled } from 'throttled-nodejs';
@@ -112,7 +116,7 @@ class TimingHook extends Hook {
     const start = process.hrtime.bigint();
     const result = callNext();
     const elapsed = Number(process.hrtime.bigint() - start) / 1e6;
-    console.log(`Rate limit check took ${elapsed.toFixed(4)}ms`);
+    console.log(`限流检查耗时 ${elapsed.toFixed(4)}ms`);
     return result;
   }
 }
@@ -126,28 +130,24 @@ const throttle = new Throttled({
 console.log(`limited=${throttle.limit().limited}`);
 ```
 
-### Best Practices
+### 最佳实践
 
-1. **Always call `callNext()`** and return its result
-2. **Handle exceptions gracefully** — wrap risky operations in try/catch so your hook doesn't get skipped
-3. **Keep hooks fast** — for slow operations, use a queue or async hooks
-4. **Use multiple hooks** for different concerns:
+1. **始终调用 `callNext()`** 并返回其结果
+2. **异常处理** — 用 try/catch 包裹风险操作
+3. **保持 Hook 轻量** — 慢操作使用异步 Hook 或队列
+4. **多 Hook 分离关注点**:
 
 ```typescript
 new Throttled({
   key: '/api',
   quota: '100/s',
-  hooks: [
-    new TimingHook(),
-    new LoggingHook(),
-    new MetricsHook(),
-  ],
+  hooks: [new TimingHook(), new LoggingHook(), new MetricsHook()],
 });
 ```
 
-## 6) Built-in Hooks
+## 6) 内置 Hook
 
-| Hook                                                         | Description                                             |
-|--------------------------------------------------------------|---------------------------------------------------------|
-| [OTelHook](../observability/opentelemetry.md)                | OpenTelemetry metrics integration (sync)                |
-| [AsyncOTelHook](../observability/opentelemetry.md)           | OpenTelemetry metrics integration (async)               |
+| Hook                                                    | 说明                     |
+|---------------------------------------------------------|--------------------------|
+| [OTelHook](../observability/opentelemetry)              | OpenTelemetry 指标（同步）|
+| [AsyncOTelHook](../observability/opentelemetry)         | OpenTelemetry 指标（异步）|

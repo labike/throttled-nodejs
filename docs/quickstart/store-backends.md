@@ -1,18 +1,22 @@
-# Store Backends
+---
+title: 存储后端
+---
+
+# 存储后端
 
 ## 1) In-Memory
 
-`MemoryStore` is an LRU cache with TTL. It is the default backend — you don't usually need to create it manually.
+`MemoryStore` 是具有 TTL 的 LRU 缓存，**默认使用**，通常无需手动创建。
 
 ```typescript
 import { Throttled } from 'throttled-nodejs';
 
-// Uses global MemoryStore (max 1024 entries)
+// 使用全局 MemoryStore（最大 1024 条）
 const throttle = new Throttled({ key: '/api/products', quota: '1/m' });
 console.log(throttle.limit().limited); // false
 ```
 
-Share the same `MemoryStore` instance to limit the same key across multiple throttles:
+共享同一个 `MemoryStore` 实例以在多个限流器间共享状态：
 
 ```typescript
 import { Throttled, MemoryStore } from 'throttled-nodejs';
@@ -43,7 +47,7 @@ main();
 
 ## 2) Redis
 
-`RedisStore` is based on `ioredis` for distributed rate limiting.
+基于 `ioredis` 的分布式限流存储。
 
 ```typescript
 import { Throttled, RedisStore, RateLimiterType } from 'throttled-nodejs';
@@ -61,15 +65,15 @@ function products(): string[] {
 }
 ```
 
-### Standalone
+### 单机模式
 
-Supported URL formats: `redis://`, `rediss://` (SSL), `unix://`.
+支持的 URL 格式：`redis://`、`rediss://`（SSL）。
 
 ```typescript
 const store = new RedisStore('redis://localhost:6379/0');
 ```
 
-### Sentinel
+### 哨兵模式
 
 ```typescript
 const store = new RedisStore(
@@ -77,7 +81,7 @@ const store = new RedisStore(
 );
 ```
 
-### Cluster
+### 集群模式
 
 ```typescript
 const store = new RedisStore(

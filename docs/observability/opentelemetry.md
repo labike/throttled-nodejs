@@ -1,23 +1,26 @@
+---
+title: OpenTelemetry
+---
+
 # OpenTelemetry
 
-`OTelHook` / `AsyncOTelHook` provide OpenTelemetry metrics integration for monitoring rate limiting events.
+`OTelHook` / `AsyncOTelHook` 提供基于 OpenTelemetry Meter 的限流指标监控。
 
-## Installation
+## 安装
 
 ```bash
 npm install @opentelemetry/api
 ```
 
-throttled-nodejs depends only on `@opentelemetry/api` (interface only). How you collect and export metrics is up to your application.
+throttled-nodejs 仅依赖 `@opentelemetry/api`（接口层），如何采集和导出由你的应用决定。
 
-## Quick Start
+## 快速开始
 
 ### Sync
 
 ```typescript
 import { metrics } from '@opentelemetry/api';
-import { Throttled } from 'throttled-nodejs';
-import { OTelHook } from 'throttled-nodejs';
+import { Throttled, OTelHook } from 'throttled-nodejs';
 
 const meter = metrics.getMeter('throttled-example');
 const throttle = new Throttled({
@@ -28,25 +31,19 @@ const throttle = new Throttled({
 
 for (let i = 0; i < 5; i++) {
   const result = throttle.limit('/api/ping');
-  console.log(`Request ${i + 1}: ${result.limited ? 'denied' : 'allowed'}`);
+  console.log(`请求 ${i + 1}: ${result.limited ? 'denied' : 'allowed'}`);
 }
 
-// 6th is denied
+// 第 6 次被限流
 const result = throttle.limit('/api/ping');
-console.log(`Request 6: ${result.limited ? 'denied' : 'allowed'}`);
-
-// 📊 OTelHook records:
-//   throttled.requests (Counter) — number of rate limit checks
-//   throttled.duration (Histogram) — latency in seconds
-// Attributes: key, algorithm, store_type, result ("allowed" / "denied")
+console.log(`请求 6: ${result.limited ? 'denied' : 'allowed'}`);
 ```
 
 ### Async
 
 ```typescript
 import { metrics } from '@opentelemetry/api';
-import { AsyncThrottled } from 'throttled-nodejs';
-import { AsyncOTelHook } from 'throttled-nodejs';
+import { AsyncThrottled, AsyncOTelHook } from 'throttled-nodejs';
 
 const meter = metrics.getMeter('throttled-example');
 const throttle = new AsyncThrottled({
@@ -58,78 +55,74 @@ const throttle = new AsyncThrottled({
 async function main() {
   for (let i = 0; i < 5; i++) {
     const result = await throttle.limit('/api/ping');
-    console.log(`Request ${i + 1}: ${result.limited ? 'denied' : 'allowed'}`);
+    console.log(`请求 ${i + 1}: ${result.limited ? 'denied' : 'allowed'}`);
   }
 
   const result = await throttle.limit('/api/ping');
-  console.log(`Request 6: ${result.limited ? 'denied' : 'allowed'}`);
+  console.log(`请求 6: ${result.limited ? 'denied' : 'allowed'}`);
 }
 
 main();
 ```
 
-## Metrics
+## 指标
 
-| Metric              | Type      | Description                                         |
-|---------------------|-----------|-----------------------------------------------------|
-| `throttled.requests`| Counter   | Number of rate limit checks (with `result` dimension) |
-| `throttled.duration`| Histogram | Duration of rate limit checks in seconds            |
+| 指标                | 类型      | 说明                              |
+|---------------------|-----------|-----------------------------------|
+| `throttled.requests`| Counter   | 限流检查次数（带 result 维度）    |
+| `throttled.duration`| Histogram | 限流检查耗时（秒）                |
 
-### Attributes
+### 属性
 
-| Attribute    | Description                                  |
-|--------------|----------------------------------------------|
-| `key`        | Rate limit key (e.g., `/api/users`)          |
-| `algorithm`  | Algorithm used (e.g., `token_bucket`)        |
-| `store_type` | Storage backend (e.g., `memory`, `redis`)    |
-| `result`     | `"allowed"` or `"denied`                    |
+| 属性         | 说明                                   |
+|--------------|----------------------------------------|
+| `key`        | 限流标识（如 `/api/users`）            |
+| `algorithm`  | 算法（如 `token_bucket`）              |
+| `store_type` | 存储后端（如 `memory`、`redis`）       |
+| `result`     | `"allowed"` 或 `"denied"`              |
 
-## Configuration
-
-Both hooks require a `Meter` instance:
+## 配置
 
 ```typescript
 import { metrics } from '@opentelemetry/api';
-import { OTelHook } from 'throttled-nodejs';
-import { AsyncOTelHook } from 'throttled-nodejs';
+import { OTelHook, AsyncOTelHook } from 'throttled-nodejs';
 
 const meter = metrics.getMeter('my-service', '1.0.0');
 const syncHook = new OTelHook(meter);
 const asyncHook = new AsyncOTelHook(meter);
 ```
 
-## Architecture
+## 架构
 
-throttled-nodejs depends only on `@opentelemetry/api` (interface only):
+throttled-nodejs 仅依赖 `@opentelemetry/api`（接口层）：
 
 ```
 ┌───────────────────────────────────────────┐
 │          throttled-nodejs                  │
-│  Dependency: @opentelemetry/api           │
-│  Output: counter.add(), histogram.record()│
+│  依赖: @opentelemetry/api                 │
+│  输出: counter.add(), histogram.record()   │
 └─────────────────────┬─────────────────────┘
                       │
                       v
 ┌───────────────────────────────────────────┐
-│          Your Application                  │
-│  You decide how to collect and export:    │
-│  - Console, OTLP, Prometheus, etc.        │
+│          你的应用                           │
+│  你决定如何采集和导出:                      │
+│  - Console, OTLP, Prometheus, 等          │
 └───────────────────────────────────────────┘
 ```
 
-## Exporter Examples
+## 导出示例
 
 ### Console
 
 ```typescript
 import { metrics } from '@opentelemetry/api';
-import { MeterProvider, PeriodicExportingMetricReader, ConsoleMetricExporter } from '@opentelemetry/sdk-metrics';
+import {
+  MeterProvider, PeriodicExportingMetricReader, ConsoleMetricExporter,
+} from '@opentelemetry/sdk-metrics';
 
-const reader = new PeriodicExportingMetricReader({
-  exporter: new ConsoleMetricExporter(),
-});
-const provider = new MeterProvider({ metricReaders: [reader] });
-metrics.setMeterProvider(provider);
+const reader = new PeriodicExportingMetricReader({ exporter: new ConsoleMetricExporter() });
+metrics.setMeterProvider(new MeterProvider({ metricReaders: [reader] }));
 
 const meter = metrics.getMeter('my-app');
 ```
@@ -144,8 +137,7 @@ import { OTLPMetricExporter } from '@opentelemetry/exporter-otlp-proto-grpc';
 const reader = new PeriodicExportingMetricReader({
   exporter: new OTLPMetricExporter({ endpoint: 'http://collector:4317' }),
 });
-const provider = new MeterProvider({ metricReaders: [reader] });
-metrics.setMeterProvider(provider);
+metrics.setMeterProvider(new MeterProvider({ metricReaders: [reader] }));
 ```
 
 ### Prometheus
@@ -155,9 +147,8 @@ import { metrics } from '@opentelemetry/api';
 import { MeterProvider } from '@opentelemetry/sdk-metrics';
 import { PrometheusExporter } from '@opentelemetry/exporter-prometheus';
 
-const exporter = new PrometheusExporter({ port: 9464 });
-const provider = new MeterProvider({ metricReaders: [exporter] });
-metrics.setMeterProvider(provider);
-
-// Metrics available at http://localhost:9464/metrics
+metrics.setMeterProvider(
+  new MeterProvider({ metricReaders: [new PrometheusExporter({ port: 9464 })] }),
+);
+// 指标位于 http://localhost:9464/metrics
 ```

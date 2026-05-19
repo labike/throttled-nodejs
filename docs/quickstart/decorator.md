@@ -1,6 +1,10 @@
-# Decorator
+---
+title: 装饰器
+---
 
-Use `Throttled.decorate()` to apply rate limiting to class methods. If denied, it throws `LimitedError`.
+# 装饰器
+
+使用 `Throttled.decorate()` 对类方法进行限流。被限流时抛出 `LimitedError`。
 
 ```typescript
 import { Throttled, LimitedError } from 'throttled-nodejs';
@@ -13,7 +17,7 @@ class API {
     return 'pong';
   }
 
-  // Cost of 2 per call
+  // 每次调用消耗 2 个 token
   @Throttled.decorate({ key: '/ping', quota, cost: 2 })
   heavyPing(): string {
     return 'heavy_pong';
@@ -24,8 +28,7 @@ const api = new API();
 console.log(api.ping()); // pong
 
 try {
-  // Consumes 2 tokens, exceeds the 2/min limit
-  api.heavyPing();
+  api.heavyPing(); // 消耗 2 tokens，超出 2/min 限制
 } catch (e) {
   if (e instanceof LimitedError) {
     console.log(e.message);
@@ -34,7 +37,7 @@ try {
 }
 ```
 
-### Async
+## Async
 
 ```typescript
 import { AsyncThrottled, LimitedError } from 'throttled-nodejs';

@@ -1,6 +1,10 @@
-# Specifying Algorithms
+---
+title: 指定算法
+---
 
-Use the `using` parameter to choose an algorithm.
+# 指定算法
+
+通过 `using` 参数选择算法。
 
 ```typescript
 import { Throttled, RateLimiterType } from 'throttled-nodejs';
@@ -17,17 +21,17 @@ const throttle = new Throttled({
 console.log(throttle.limit('key', 2).limited); // true
 ```
 
-### Algorithms
+## 算法列表
 
-| Algorithm     | `RateLimiterType`      | Description                              |
-|---------------|------------------------|------------------------------------------|
-| Fixed Window  | `FIXED_WINDOW`         | Simple counter, resets at window boundary |
-| Sliding Window| `SLIDING_WINDOW`       | Log-based sliding window                 |
-| Token Bucket  | `TOKEN_BUCKET`         | Tokens refilled at constant rate          |
-| Leaky Bucket  | `LEAKING_BUCKET`       | Requests leak at constant rate            |
-| GCRA          | `GCRA`                 | Generic Cell Rate Algorithm               |
+| 算法          | `RateLimiterType`      | 说明                          |
+|---------------|------------------------|------------------------------|
+| Fixed Window  | `FIXED_WINDOW`         | 固定窗口计数器，窗口边界重置    |
+| Sliding Window| `SLIDING_WINDOW`       | 基于滑动窗口日志               |
+| Token Bucket  | `TOKEN_BUCKET`         | 恒定速率补充令牌               |
+| Leaky Bucket  | `LEAKING_BUCKET`       | 恒定速率泄漏请求               |
+| GCRA          | `GCRA`                 | 通用信元速率算法               |
 
-### Async
+## Async
 
 ```typescript
 import { AsyncThrottled, RateLimiterType } from 'throttled-nodejs';

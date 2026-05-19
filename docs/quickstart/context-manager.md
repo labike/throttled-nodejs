@@ -1,13 +1,17 @@
-# Context Manager
+---
+title: 上下文管理器
+---
 
-Use `enter()` / `exit()` to rate-limit a code block. `enter()` returns the `RateLimitResult` if allowed, or throws `LimitedError` if denied.
+# 上下文管理器
+
+使用 `enter()` / `exit()` 对代码块进行限流。允许时返回 `RateLimitResult`，拒绝时抛出 `LimitedError`。
 
 ```typescript
 import { Throttled, LimitedError } from 'throttled-nodejs';
 
 const throttle = new Throttled({ key: '/api/v1/users/', quota: '1/m' });
 
-// Allowed
+// 允许
 const result = throttle.enter();
 console.log(result.limited); // false
 console.log(result.state);
@@ -15,7 +19,7 @@ console.log(result.state);
 throttle.exit();
 
 try {
-  throttle.enter(); // throws LimitedError
+  throttle.enter(); // 抛出 LimitedError
   throttle.exit();
 } catch (e) {
   if (e instanceof LimitedError) {
@@ -25,7 +29,7 @@ try {
 }
 ```
 
-### Async
+## Async
 
 ```typescript
 import { AsyncThrottled, LimitedError } from 'throttled-nodejs';

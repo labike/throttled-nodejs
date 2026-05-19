@@ -1,4 +1,8 @@
-# Installation
+---
+title: 安装
+---
+
+# 安装
 
 ## Install
 
@@ -6,18 +10,18 @@
 npm install throttled-nodejs
 ```
 
-> Requires Node.js >= 18 (ES2021).
+> 需要 Node.js >= 18（ES2021）。
 
-## Optional Dependencies
+## 可选依赖
 
-Only core dependencies are installed by default. To enable additional features, install optional dependencies:
+只安装核心依赖。启用附加功能需要额外安装：
 
 ```bash
-npm install ioredis            # Redis storage backend
-npm install @opentelemetry/api # OpenTelemetry metrics
+npm install ioredis            # Redis 存储后端
+npm install @opentelemetry/api # OpenTelemetry 指标
 ```
 
-| Dependency            | Feature              |
-|-----------------------|----------------------|
-| `ioredis`             | Redis storage backend |
-| `@opentelemetry/api`  | OpenTelemetry metrics |
+| 依赖                     | 功能               |
+|--------------------------|-------------------|
+| `ioredis`                | Redis 存储后端     |
+| `@opentelemetry/api`     | OpenTelemetry 指标 |

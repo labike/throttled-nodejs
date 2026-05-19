@@ -1,11 +1,15 @@
-# Benchmarks
+---
+title: 基准测试
+---
 
-Performance benchmarks for throttled-nodejs. Execution time for a single rate limit API call is equivalent to:
+# 基准测试
 
-- **In-Memory**: ~2.5–4.5× a `Map.set()` operation
-- **Redis**: ~1.06–1.37× an `INCR` command
+throttled-nodejs 性能指标。单次限流 API 调用耗时相当于：
 
-You can run benchmarks using the built-in `Benchmark` utility:
+- **In-Memory**：约 2.5–4.5 倍 `Map.set()` 操作
+- **Redis**：约 1.06–1.37 倍 `INCR` 命令
+
+使用内置 `Benchmark` 工具运行测试：
 
 ```typescript
 import { Throttled, Benchmark, RateLimiterType } from 'throttled-nodejs';
@@ -26,7 +30,7 @@ bench.stats();
 // ✅ Total: 1000, 🕒 Latency: 0.0358 ms/op, 🚀 Throughput: 27933 req/s (--)
 ```
 
-### Concurrent
+## 并发测试
 
 ```typescript
 async function concurrentBench() {
